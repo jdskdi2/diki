@@ -36,3 +36,5 @@ LLM이 외부 문서 컬렉션에서 관련 정보를 검색한 뒤 답변을 �
 
 - [[llm-wiki-karpathy]] — RAG 대안으로서의 LLM Wiki
 - [[memex]] — 지식 저장소의 역사적 맥락
+- [[context-engineering]] — 검색 대신 미리 구축된 위키·context를 curate하는 방식
+- [[context-engineering-guide]] — context 실전 종합 토픽
