@@ -1,7 +1,7 @@
 ---
 title: "Index"
 created: 2026-07-02
-updated: 2026-09-21
+updated: 2026-09-22
 tags: [index, navigation]
 aliases: ["Catalog", "Sitemap"]
 ---
@@ -26,6 +26,7 @@ aliases: ["Catalog", "Sitemap"]
 - [[openai-model-spec-approach]] — OpenAI Model Spec 접근법. Instruction hierarchy + hard rules.
 - [[agentic-ai-scientific-computing]] — 에이전트 시대 과학 컴퓨팅 8건 보고. 검증이 새 병목.
 - [[design-md-google-stitch-guide]] — Google Stitch DESIGN.md 도입 가이드. AI용 design system 문서.
+- [[ai-tools-study]] — 개인 스터디 노트. 같은 모델도 하네스가 다르면 다른 도구 (5요소·3축·7유형).
 
 ## Entities
 
@@ -38,6 +39,12 @@ aliases: ["Catalog", "Sitemap"]
 - [[google-stitch]] — AI UI 생성 도구. DESIGN.md 개념 도입 (Vibe Design).
 - [[thariq-shihipar]] — Anthropic MTS, Claude Code 담당. 5규칙·세션관리 글 저자.
 - [[philipp-schmid]] — Google DeepMind. Skill eval 강연자.
+- [[cursor]] — AI 코딩 IDE 대표. diff·파일 구조로 시각 확인.
+- [[google-antigravity]] — Google AI 코딩 IDE. 멀티 에이전트 병렬 위임.
+- [[aside]] — 브라우저 자체가 에이전트. 로그인된 사이트 직접 조작.
+- [[claude-cowork]] — Anthropic 데스크톱 위임형. 사무 업무용 포장.
+- [[openclaw]] — 메신저 상주형 대표. 상시 대기 + 모델 교체 가능.
+- [[grok-bot]] — 팀원형. 클라우드 전용 VM + 역할별 다중 실행.
 
 ## Concepts
 
@@ -58,6 +65,8 @@ aliases: ["Catalog", "Sitemap"]
 - [[model-spec]] — 모델 행동 공개 프레임워크. Hierarchy + hard rules vs defaults.
 - [[design-md]] — AI용 plain-text design system. AGENTS.md와 역할 분리.
 - [[ai-native-sdlc]] — AI-native 소프트웨어 생명주기. Artifact chain loop.
+- [[ai-harness]] — 모델을 감싸는 틀 5요소. 같은 모델도 하네스로 갈림.
+- [[ai-tool-autonomy-spectrum]] — 3분류축 + 자율성 순 7유형 스펙트럼.
 
 ## Topics
 

@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 도구는 왜 이렇게 많을까</title>
+<style>
+  @import url('https://cdnjs.cloudflare.com/ajax/libs/pretendard/1.3.9/static/pretendard.css');
+
+  :root {
+    --bg: #10131a;
+    --surface: #171c25;
+    --surface-2: #1d2330;
+    --line: #2a3140;
+    --text: #e9e6dd;
+    --text-dim: #9aa2b1;
+    --mono: 'JetBrains Mono', 'D2Coding', monospace;
+
+    /* 자율성 스펙트럼 색: 낮음(파랑) → 높음(주황) */
+    --c1: #6ea8fe;
+    --c2: #63c2c9;
+    --c3: #5fd0a3;
+    --c4: #a7d17a;
+    --c5: #e8c23d;
+    --c6: #eda23d;
+    --c7: #ef7d4a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    line-height: 1.7;
+    letter-spacing: -0.01em;
+  }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* 배경의 은은한 격자 — 터미널/코드 느낌을 과하지 않게 */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    opacity: 0.15;
+    mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 40%, transparent 100%);
+  }
+
+  /* ---------- Hero ---------- */
+  header.hero {
+    padding: 96px 0 72px;
+  }
+
+  .kicker {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-size: 44px;
+    line-height: 1.3;
+    font-weight: 700;
+    margin: 0 0 28px;
+    max-width: 11em;
+  }
+
+  .lede {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 620px;
+    margin: 0;
+  }
+
+  .lede strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* ---------- Harness concept ---------- */
+  section.harness {
+    padding: 40px 0 64px;
+    border-top: 1px solid var(--line);
+  }
+
+  .harness-example {
+    margin-top: 36px;
+  }
+
+  .harness-example h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin: 0 0 14px;
+  }
+
+  .harness-example h3 a {
+    color: inherit;
+  }
+
+  .htable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+
+  .htable th, .htable td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  .htable thead th {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    border-bottom: 2px solid var(--line);
+  }
+
+  .htable thead th:first-child {
+    color: var(--text-dim);
+    font-weight: 500;
+    font-family: var(--mono);
+    font-size: 12.5px;
+  }
+
+  .htable thead th span.tag {
+    display: block;
+    font-family: var(--mono);
+    font-weight: 400;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    margin-top: 3px;
+  }
+
+  .htable tbody th {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .harness-punch {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 22px;
+    font-size: 15px;
+    margin-top: 8px;
+  }
+
+  .harness-punch strong { color: var(--c5); }
+
+  /* ---------- 3 axes ---------- */
+  section.axes {
+    padding: 40px 0 64px;
+    border-top: 1px solid var(--line);
+  }
+
+  h2 {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0 0 12px;
+  }
+
+  .section-intro {
+    color: var(--text-dim);
+    max-width: 600px;
+    margin: 0 0 40px;
+  }
+
+  .axis-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .axis-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 24px 20px;
+  }
+
+  .axis-card .icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 16px;
+    color: var(--c5);
+  }
+
+  .axis-card h3 {
+    font-size: 16px;
+    margin: 0 0 8px;
+  }
+
+  .axis-card p {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  /* ---------- Spectrum bar ---------- */
+  section.spectrum {
+    padding: 0 0 72px;
+  }
+
+  .spectrum-track {
+    position: relative;
+    height: 4px;
+    border-radius: 2px;
+    margin: 48px 0 20px;
+    background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3), var(--c4), var(--c5), var(--c6), var(--c7));
+  }
+
+  .spectrum-labels {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+
+  .spectrum-labels a {
+    display: block;
+    text-decoration: none;
+    color: var(--text-dim);
+    font-size: 12.5px;
+    text-align: center;
+    padding-top: 14px;
+    position: relative;
+    transition: color 0.15s;
+  }
+
+  .spectrum-labels a::before {
+    content: '';
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: currentColor;
+    border: 2px solid var(--bg);
+  }
+
+  .spectrum-labels a:hover { color: var(--text); }
+
+  .spectrum-ends {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+
+  /* ---------- Category sections ---------- */
+  section.category {
+    padding: 56px 0;
+    border-top: 1px solid var(--line);
+    scroll-margin-top: 24px;
+  }
+
+  .cat-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .cat-icon {
+    flex: none;
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .cat-icon svg { width: 26px; height: 26px; }
+
+  .cat-title-block .num {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .cat-title-block h2 { margin: 0; }
+
+  .tool-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0 28px;
+  }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+  }
+
+  .fact-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 4px 16px;
+    font-size: 14.5px;
+    margin-bottom: 8px;
+  }
+
+  .fact-row dt {
+    color: var(--text-dim);
+  }
+
+  .fact-row dd {
+    margin: 0;
+  }
+
+  .facts {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 24px;
+  }
+
+  .body-text p {
+    margin: 0 0 16px;
+  }
+
+  .body-text p:last-child { margin-bottom: 0; }
+
+  .diff-note {
+    margin-top: 20px;
+    padding: 16px 18px;
+    border-left: 3px solid var(--accent-color, var(--c5));
+    background: var(--surface);
+    border-radius: 0 8px 8px 0;
+    font-size: 14.5px;
+    color: var(--text-dim);
+  }
+
+  .diff-note strong { color: var(--text); font-weight: 600; }
+
+  .see-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .see-link svg { width: 14px; height: 14px; flex: none; }
+
+  .see-link:hover {
+    color: var(--accent-color, var(--c5));
+    border-color: var(--accent-color, var(--c5));
+  }
+
+  .capture {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    background: var(--surface);
+    margin-bottom: 24px;
+  }
+
+  .capture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .capture-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    padding: 0 24px;
+    background:
+      repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 10px, var(--surface) 10px, var(--surface) 20px);
+  }
+
+  .capture-placeholder .path {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+
+  .capture-placeholder .hint {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* ---------- Summary table ---------- */
+  section.summary {
+    padding: 56px 0 96px;
+    border-top: 1px solid var(--line);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 32px;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  th {
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 13px;
+  }
+
+  td.tool-cell { font-family: var(--mono); font-size: 13px; }
+
+  .dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+
+  footer {
+    padding: 40px 0 80px;
+    color: var(--text-dim);
+    font-size: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  @media (max-width: 640px) {
+    h1 { font-size: 32px; }
+    .axis-grid { grid-template-columns: 1fr; }
+    .spectrum-labels { grid-template-columns: repeat(4, 1fr); row-gap: 28px; }
+    .summary table { font-size: 12.5px; }
+    .summary th:nth-child(3), .summary td:nth-child(3) { display: none; }
+    .htable { display: block; overflow-x: auto; white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">AI 스터디 자료</div>
+    <h1>같은 모델인데,<br>왜 도구마다 이렇게 다를까</h1>
+    <p class="lede">
+      ChatGPT, Claude Code, Cursor, OpenClaw… 이름은 다 다르지만 속을 들여다보면
+      GPT, Claude, Gemini, Grok 같은 몇 개 모델을 나눠 쓰고 있는 경우가 많습니다.
+      그런데도 완전히 다른 도구처럼 느껴지는 이유는, <strong>모델을 감싸고 있는 틀</strong>이
+      다르기 때문이에요. 이 틀에 따라 어디서 말을 거는지, 얼마나 알아서 처리하는지,
+      실제 작업이 어디서 일어나는지가 달라집니다.
+    </p>
+  </header>
+
+  <section class="harness">
+    <h2>"모델을 감싸고 있는 틀"이 정확히 뭘까</h2>
+    <p class="section-intro">
+      흔히 AI를 고를 때 "어떤 모델이 더 똑똑한가"만 따지는데, 실제로는 그 모델을
+      <strong style="color:var(--text)">어떤 도구 위에서 쓰느냐</strong>가 결과를 더 크게 좌우할 때가 많습니다.
+      이 도구 하나하나는 보통 아래 다섯 가지로 만들어져요.
+    </p>
+
+    <div class="harness-example">
+      <h3>예시 · 같은 GPT 모델인데 <a href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT</a>와 Codex는 다르게 동작합니다</h3>
+      <table class="htable">
+        <thead>
+          <tr>
+            <th>구성 요소</th>
+            <th style="color:var(--c1)">ChatGPT<span class="tag">일반 대화용</span></th>
+            <th style="color:var(--c2)">Codex<span class="tag">코딩 에이전트용</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th>시스템 프롬프트</th><td>친절하게 대화를 돕는 어시스턴트로 행동하라는 지시</td><td>코드를 계획하고, 고치고, 테스트까지 확인하는 에이전트로 행동하라는 지시</td></tr>
+          <tr><th>Tool</th><td>웹 검색, 이미지 생성 등 범용 보조 도구</td><td>파일 읽기/쓰기, 셸 명령 실행, git 조작 같은 코드 전용 도구</td></tr>
+          <tr><th>Context</th><td>지금까지의 대화 내용</td><td>프로젝트의 파일 구조와 코드 전체</td></tr>
+          <tr><th>실행 환경</th><td>텍스트만 반환하는 제한된 샌드박스</td><td>실제 파일을 바꿀 수 있는 로컬/클라우드 환경</td></tr>
+          <tr><th>Agent Loop</th><td>한 번 답하고 다음 지시를 기다림</td><td>계획 → 실행 → 결과 확인 → 필요하면 재시도, 이 과정을 스스로 반복</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="harness-example">
+      <h3>예시 · 같은 Claude 모델이 <a href="#cat-1">Chat</a>, <a href="#cat-2">Claude Code</a>, <a href="#cat-5">Cowork</a>에서 다르게 동작합니다</h3>
+      <table class="htable">
+        <thead>
+          <tr>
+            <th>구성 요소</th>
+            <th style="color:var(--c1)">Chat</th>
+            <th style="color:var(--c2)">Claude Code</th>
+            <th style="color:var(--c5)">Cowork</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th>시스템 프롬프트</th><td>대화 상대로 행동</td><td>코드베이스를 다루는 에이전트로 행동</td><td>문서·파일을 다루는 에이전트로 행동</td></tr>
+          <tr><th>Tool</th><td>웹 검색 등 보조 도구 위주</td><td>셸, 파일 읽기/쓰기, 테스트 실행</td><td>문서·스프레드시트·폴더 조작</td></tr>
+          <tr><th>Context</th><td>대화 히스토리</td><td>코드 저장소 구조</td><td>내 컴퓨터의 파일과 폴더</td></tr>
+          <tr><th>실행 환경</th><td>없음</td><td>로컬 터미널</td><td>로컬 파일 시스템 + 앱</td></tr>
+          <tr><th>Agent Loop</th><td>매 턴 사람이 개입</td><td>계획을 보여주고 승인받으며 반복</td><td>목표만 받고 끝까지 알아서 반복</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="harness-punch">
+      그래서 뒤에 나오는 <strong>7가지 유형</strong>은 사실 "완전히 다른 AI"가 아니라,
+      몇 안 되는 모델을 각기 다른 시스템 프롬프트·Tool·Context·실행 환경·Agent Loop로
+      감싼 결과에 가깝습니다. 어떤 모델을 쓰느냐 못지않게, 어떤 하네스 위에서
+      쓰느냐가 실제 결과물을 갈라놓는다는 뜻이에요.
+    </div>
+  </section>
+
+  <section class="axes">
+    <h2>도구를 가르는 세 가지 기준</h2>
+    <p class="section-intro">
+      아래 세 가지가 다르면, 모델이 같아도 다른 도구가 됩니다.
+    </p>
+
+    <div class="axis-grid">
+      <div class="axis-card">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="6.5" cy="6.5" r="0.6" fill="currentColor" stroke="none"/></svg>
+        <h3>어디서 말을 거는가</h3>
+        <p>채팅창인지, 터미널인지, 코드 에디터인지, 브라우저인지, 아니면 카톡 같은 메신저인지. 사람이 명령을 입력하는 자리가 다릅니다.</p>
+      </div>
+      <div class="axis-card">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <h3>얼마나 맡기는가</h3>
+        <p>한 마디 할 때마다 확인받는지, 아니면 목표만 던져주면 끝까지 알아서 처리하고 결과만 가져오는지의 차이입니다.</p>
+      </div>
+      <div class="axis-card">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 17V7a2 2 0 012-2h8l6 6v6a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M14 5v5h5"/></svg>
+        <h3>실제로 어디서 일이 벌어지는가</h3>
+        <p>내 컴퓨터의 셸에서 명령이 실행되는지, 클라우드에 따로 마련된 컴퓨터에서 도는지, 아니면 로그인해둔 웹사이트를 직접 조작하는지가 다릅니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="spectrum">
+    <h2>자율성 기준으로 줄 세워보면</h2>
+    <p class="section-intro">
+      세 기준 중에서도 "얼마나 맡기는가"가 체감 차이를 가장 크게 만듭니다.
+      아래 순서대로 하나씩 짚어볼게요.
+    </p>
+
+    <div class="spectrum-track"></div>
+    <div class="spectrum-labels">
+      <a href="#cat-1" style="color:var(--c1)">Chat</a>
+      <a href="#cat-2" style="color:var(--c2)">코딩 CLI</a>
+      <a href="#cat-3" style="color:var(--c3)">코딩 IDE</a>
+      <a href="#cat-4" style="color:var(--c4)">브라우저형</a>
+      <a href="#cat-5" style="color:var(--c5)">데스크톱 위임형</a>
+      <a href="#cat-6" style="color:var(--c6)">메신저 상주형</a>
+      <a href="#cat-7" style="color:var(--c7)">팀원형</a>
+    </div>
+    <div class="spectrum-ends">
+      <span>매 턴 확인받음</span>
+      <span>맡기고 잊어도 됨</span>
+    </div>
+  </section>
+
+  <!-- 1. Chat -->
+  <section class="category" id="cat-1">
+    <div class="cat-head">
+      <div class="cat-icon" style="color:var(--c1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <div class="cat-title-block">
+        <span class="num">01 · 자율성 낮음</span>
+        <h2>Chat</h2>
+      </div>
+    </div>
+    <div class="tool-chips">
+      <span class="chip">ChatGPT</span><span class="chip">Claude</span><span class="chip">Gemini</span><span class="chip">Grok</span>
+    </div>
+    <div class="capture">
+      <img src="images/01-chat.png" alt="Chat 화면 예시" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="capture-placeholder" style="display:none;">
+        <span class="path">images/01-chat.png</span>
+        <span class="hint">ChatGPT/Claude 같은 채팅 화면 캡처를 이 경로에 넣어주세요</span>
+      </div>
+    </div>
+    <div class="facts">
+      <dl>
+        <div class="fact-row"><dt>인터페이스</dt><dd>채팅창</dd></div>
+        <div class="fact-row"><dt>실행 몸체</dt><dd>없음 — 텍스트를 생성할 뿐</dd></div>
+      </dl>
+    </div>
+    <div class="body-text">
+      <p>
+        질문하면 답하고, 다음 질문을 하면 또 답하는 방식입니다. 글쓰기를 도와주거나,
+        아이디어를 같이 정리하거나, 코드 한 줄을 설명받는 데 적합합니다.
+        핵심은 사람이 계속 대화를 이어가야 진행된다는 점이에요. 결과물 자체보다
+        "대화하면서 생각을 정리하는 과정"이 목적에 가깝습니다.
+      </p>
+      <a class="see-link" style="--accent-color:var(--c1)" href="https://claude.ai" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        Claude 화면 보기
+      </a>
+      <a class="see-link" style="--accent-color:var(--c1)" href="https://chatgpt.com" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        ChatGPT 화면 보기
+      </a>
+    </div>
+  </section>
+
+  <!-- 2. Coding CLI -->
+  <section class="category" id="cat-2">
+    <div class="cat-head">
+      <div class="cat-icon" style="color:var(--c2)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3"/><path d="M13 15h4"/></svg>
+      </div>
+      <div class="cat-title-block">
+        <span class="num">02 · 자율성 중간</span>
+        <h2>코딩 CLI 에이전트</h2>
+      </div>
+    </div>
+    <div class="tool-chips">
+      <span class="chip">Claude Code</span><span class="chip">Codex CLI</span><span class="chip">Gemini CLI</span><span class="chip">Grok Build</span><span class="chip">GitHub Copilot CLI</span>
+    </div>
+    <div class="capture">
+      <img src="images/02-cli.png" alt="코딩 CLI 화면 예시" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="capture-placeholder" style="display:none;">
+        <span class="path">images/02-cli.png</span>
+        <span class="hint">터미널에서 Claude Code 등이 동작하는 화면 캡처를 넣어주세요</span>
+      </div>
+    </div>
+    <div class="facts">
+      <dl>
+        <div class="fact-row"><dt>인터페이스</dt><dd>터미널</dd></div>
+        <div class="fact-row"><dt>실행 몸체</dt><dd>내 컴퓨터의 셸 (bash 등)</dd></div>
+      </dl>
+    </div>
+    <div class="body-text">
+      <p>
+        코드베이스 전체를 읽고, 여러 파일을 한 번에 고치고, 터미널에서 테스트나
+        빌드 명령까지 직접 실행합니다. 실행해보고 에러가 나면 그걸 보고 스스로
+        다시 고치기도 해요. "코드를 물어보는" 게 아니라 "코드를 실제로 고치는" 수준의
+        작업이라, 대신 큰 변경을 하기 전에는 계획을 보여주고 진행 여부를 물어봅니다.
+      </p>
+      <div class="diff-note" style="border-color:var(--c2)">
+        Chat과 다른 점은 <strong>실행 권한</strong>입니다. Chat은 코드를 보여줄 뿐이지만,
+        여기서는 실제로 파일이 바뀌고 명령이 실행됩니다.
+      </div>
+      <a class="see-link" style="--accent-color:var(--c2)" href="https://claude.com/product/claude-code" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        Claude Code 화면 보기
+      </a>
+    </div>
+  </section>
+
+  <!-- 3. Coding IDE -->
+  <section class="category" id="cat-3">
+    <div class="cat-head">
+      <div class="cat-icon" style="color:var(--c3)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+      </div>
+      <div class="cat-title-block">
+        <span class="num">03 · 자율성 중간~높음</span>
+        <h2>코딩 IDE</h2>
+      </div>
+    </div>
+    <div class="tool-chips">
+      <span class="chip">Cursor</span><span class="chip">Windsurf</span><span class="chip">GitHub Copilot</span><span class="chip">Google Antigravity</span>
+    </div>
+    <div class="capture">
+      <img src="images/03-ide.png" alt="코딩 IDE 화면 예시" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="capture-placeholder" style="display:none;">
+        <span class="path">images/03-ide.png</span>
+        <span class="hint">Cursor나 Antigravity 같은 AI 에디터 화면 캡처를 넣어주세요</span>
+      </div>
+    </div>
+    <div class="facts">
+      <dl>
+        <div class="fact-row"><dt>인터페이스</dt><dd>코드 에디터</dd></div>
+        <div class="fact-row"><dt>실행 몸체</dt><dd>에디터 내부 + 로컬 프로젝트</dd></div>
+      </dl>
+    </div>
+    <div class="body-text">
+      <p>
+        하는 일 자체는 CLI 에이전트와 비슷하지만, 결과를 텍스트 로그 대신
+        코드 변경 사항(diff)과 파일 구조로 눈으로 보면서 확인할 수 있습니다.
+        자동완성처럼 짧은 도움부터, "로그인 화면 하나 만들어줘" 같은
+        여러 파일에 걸친 작업까지 다룹니다. Google Antigravity는 여기서 한 발
+        더 나아가, 에이전트 여러 개를 동시에 띄워 각자 다른 작업을 맡기고
+        진행 상황만 관리하는 방식도 지원합니다.
+      </p>
+      <a class="see-link" style="--accent-color:var(--c3)" href="https://cursor.com" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        Cursor 화면 보기
+      </a>
+      <a class="see-link" style="--accent-color:var(--c3)" href="https://antigravity.google" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        Google Antigravity 화면 보기
+      </a>
+    </div>
+  </section>
+
+  <!-- 4. Browser agents -->
+  <section class="category" id="cat-4">
+    <div class="cat-head">
+      <div class="cat-icon" style="color:var(--c4)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><circle cx="6" cy="6.5" r="0.6" fill="currentColor" stroke="none"/><circle cx="8.3" cy="6.5" r="0.6" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="cat-title-block">
+        <span class="num">04 · 자율성 중간~높음</span>
+        <h2>브라우저형 에이전트</h2>
+      </div>
+    </div>
+    <div class="tool-chips">
+      <span class="chip">Aside</span><span class="chip">Comet</span><span class="chip">ChatGPT Atlas</span><span class="chip">Claude in Chrome</span>
+    </div>
+    <div class="capture">
+      <img src="images/04-browser.png" alt="브라우저형 에이전트 화면 예시" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="capture-placeholder" style="display:none;">
+        <span class="path">images/04-browser.png</span>
+        <span class="hint">Aside 같은 브라우저 에이전트 화면 캡처를 넣어주세요</span>
+      </div>
+    </div>
+    <div class="facts">
+      <dl>
+        <div class="fact-row"><dt>인터페이스</dt><dd>브라우저</dd></div>
+        <div class="fact-row"><dt>실행 몸체</dt><dd>로그인해둔 웹페이지 자체</dd></div>
+      </dl>
+    </div>
+    <div class="body-text">
+      <p>
+        API 연동 없이도, 사람이 로그인해둔 사이트를 직접 클릭하고 입력하면서
+        일을 처리합니다. Aside 같은 경우는 확장 프로그램이 아니라 브라우저
+        자체가 통째로 에이전트라서, Gmail이든 사내 관리 도구든 로그인만
+        되어 있으면 손이 닿습니다. 작업 난이도에 따라 얼마나 깊게 생각하고
+        움직일지 단계를 고를 수도 있어요. 참고로 Aside는 한국인 3명이 창업한
+        팀이 만든 제품이기도 합니다.
+      </p>
+      <a class="see-link" style="--accent-color:var(--c4)" href="https://alternativeto.net/software/aside/about/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        Aside 소개 페이지 보기
+      </a>
+    </div>
+  </section>
+
+  <!-- 5. Desktop delegation -->
+  <section class="category" id="cat-5">
+    <div class="cat-head">
+      <div class="cat-icon" style="color:var(--c5)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7l2-3h6l2 3h8v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></svg>
+      </div>
+      <div class="cat-title-block">
+        <span class="num">05 · 자율성 높음</span>
+        <h2>데스크톱 위임형 에이전트</h2>
+      </div>
+    </div>
+    <div class="tool-chips">
+      <span class="chip">Claude Cowork</span><span class="chip">ChatGPT Agent 모드</span>
+    </div>
+    <div class="capture">
+      <img src="images/05-desktop.png" alt="데스크톱 위임형 에이전트 화면 예시" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="capture-placeholder" style="display:none;">
+        <span class="path">images/05-desktop.png</span>
+        <span class="hint">Claude Cowork 같은 데스크톱 앱 화면 캡처를 넣어주세요</span>
+      </div>
+    </div>
+    <div class="facts">
+      <dl>
+        <div class="fact-row"><dt>인터페이스</dt><dd>데스크톱 앱</dd></div>
+        <div class="fact-row"><dt>실행 몸체</dt><dd>내 컴퓨터의 파일과 앱</dd></div>
+      </dl>
+    </div>
+    <div class="body-text">
+      <p>
+        코드가 아니라 문서, 스프레드시트, 폴더 정리 같은 사무 업무를 대신
+        맡기는 도구입니다. "이 자료들 취합해서 보고서로 만들어줘",
+        "다운로드 폴더 좀 정리해줘" 같은 지시를 주면, 여러 파일을 오가며
+        하나의 결과물로 만들어 가져다줍니다. 개발자가 아닌 사람도 쓸 수
+        있도록 코딩 에이전트와 같은 엔진을 사무 업무에 맞게 감싼 형태예요.
+      </p>
+      <a class="see-link" style="--accent-color:var(--c5)" href="https://claude.com/blog/cowork-research-preview" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        Claude Cowork 화면 보기
+      </a>
+    </div>
+  </section>
+
+  <!-- 6. Messenger-resident -->
+  <section class="category" id="cat-6">
+    <div class="cat-head">
+      <div class="cat-icon" style="color:var(--c6)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5h16v11H8l-4 4z"/><circle cx="9" cy="10" r="0.7" fill="currentColor" stroke="none"/><circle cx="12" cy="10" r="0.7" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="0.7" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="cat-title-block">
+        <span class="num">06 · 자율성 매우 높음</span>
+        <h2>메신저 상주형 에이전트</h2>
+      </div>
+    </div>
+    <div class="tool-chips">
+      <span class="chip">OpenClaw</span><span class="chip">Hermes Agent</span>
+    </div>
+    <div class="capture">
+      <img src="images/06-messenger.png" alt="메신저 상주형 에이전트 화면 예시" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="capture-placeholder" style="display:none;">
+        <span class="path">images/06-messenger.png</span>
+        <span class="hint">OpenClaw를 텔레그램 등에서 쓰는 화면 캡처를 넣어주세요</span>
+      </div>
+    </div>
+    <div class="facts">
+      <dl>
+        <div class="fact-row"><dt>인터페이스</dt><dd>텔레그램, 디스코드 같은 메신저</dd></div>
+        <div class="fact-row"><dt>실행 몸체</dt><dd>내 서버·컴퓨터에서 계속 켜져 있는 프로세스</dd></div>
+      </dl>
+    </div>
+    <div class="body-text">
+      <p>
+        앞선 도구들은 내가 앱을 켜야 작동하지만, 이 유형은 서버에 계속
+        떠 있다가 메시지가 오면 알아서 판단해서 움직입니다. 특정 회사
+        모델에 묶이지 않고 원하는 모델을 갈아 끼울 수 있는 것도 특징이에요.
+        "내일 회의 전에 자료 정리해서 보내줘"라고 메신저로 시키면 알아서
+        처리하는 식입니다. 다만 계속 켜져 있고 권한도 많다 보니, 잘못된
+        지시나 외부 공격에 노출될 위험도 함께 따라옵니다.
+      </p>
+      <a class="see-link" style="--accent-color:var(--c6)" href="https://openclaw.ai" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        OpenClaw 공식 사이트 보기
+      </a>
+    </div>
+  </section>
+
+  <!-- 7. Teammate -->
+  <section class="category" id="cat-7">
+    <div class="cat-head">
+      <div class="cat-icon" style="color:var(--c7)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 18v-1a4 4 0 014-4h8a4 4 0 014 4v1"/><circle cx="12" cy="7" r="3"/></svg>
+      </div>
+      <div class="cat-title-block">
+        <span class="num">07 · 자율성 매우 높음</span>
+        <h2>팀원형 에이전트</h2>
+      </div>
+    </div>
+    <div class="tool-chips">
+      <span class="chip">Grok Bot</span>
+    </div>
+    <div class="capture">
+      <img src="images/07-teammate.png" alt="팀원형 에이전트 화면 예시" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="capture-placeholder" style="display:none;">
+        <span class="path">images/07-teammate.png</span>
+        <span class="hint">Grok Bot 소개 화면 캡처를 넣어주세요</span>
+      </div>
+    </div>
+    <div class="facts">
+      <dl>
+        <div class="fact-row"><dt>인터페이스</dt><dd>업무 지시(텍스트로 역할 부여)</dd></div>
+        <div class="fact-row"><dt>실행 몸체</dt><dd>클라우드에 마련된 전용 컴퓨터</dd></div>
+      </dl>
+    </div>
+    <div class="body-text">
+      <p>
+        메신저 상주형과 비슷하게 계속 일하지만, 차이는 자기 컴퓨터를
+        따로 갖고 있다는 점입니다. 사람처럼 이메일이나 업무 툴에 직접
+        로그인해서 일을 처리하고요. "영업 Bot", "버그 재현 Bot"처럼
+        역할을 나눠 여러 개를 동시에 돌릴 수 있어서, 밤새 일을 시켜두고
+        아침에 결과만 확인하는 식으로도 쓸 수 있습니다.
+      </p>
+      <a class="see-link" style="--accent-color:var(--c7)" href="https://x.ai/bot" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        Grok Bot 소개 페이지 보기
+      </a>
+    </div>
+  </section>
+
+  <footer>
+  </footer>
+
+</div>
+
+</body>
+</html>

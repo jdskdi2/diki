@@ -1,7 +1,7 @@
 ---
 title: "Log"
 created: 2026-07-02
-updated: 2026-09-21
+updated: 2026-09-22
 tags: [log, history]
 ---
 
@@ -53,3 +53,16 @@ tags: [log, history]
   - `wiki/topics/ai-coding-workflow.md` — engineering·검증·비용 3축
   - `wiki/topics/agent-docs-pattern.md` — AGENTS·CLAUDE·SKILL·DESIGN·Intent 역할 분담
 - `wiki/index.md` — 전체 카탈로그 업데이트
+
+## [2026-09-22] ingest | AI Tools Study (같은 모델, 다른 도구)
+
+- 소스: `raw/notes/ai_tool/ai-tools-study.html` (개인 스터디 노트 + images 7종)
+- 생성된 소스 요약 (1):
+  - `wiki/sources/ai-tools-study.md` — 하네스 5요소·3축·7유형 정리
+- 생성된 엔티티 (6):
+  - `wiki/entities/cursor.md`, `wiki/entities/google-antigravity.md`, `wiki/entities/aside.md`, `wiki/entities/claude-cowork.md`, `wiki/entities/openclaw.md`, `wiki/entities/grok-bot.md`
+- 생성된 개념 (2):
+  - `wiki/concepts/ai-harness.md`, `wiki/concepts/ai-tool-autonomy-spectrum.md`
+- 업데이트:
+  - `wiki/entities/claude-code.md` — harness 대비 예시 + sources 추가
+  - `wiki/index.md` — 카탈로그 업데이트
