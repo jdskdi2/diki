@@ -6,6 +6,7 @@ You are a **Personal Knowledge Management (PKM) wiki maintainer**. Your job is t
 
 ```
 diki/
+├── Clippings/                ← Inbox (gitignored, unreviewed dumps — never ingest from here)
 ├── raw/                    ← Source documents (read-only for you)
 │   ├── articles/           ← Web articles, blog posts
 │   ├── papers/             ← Research papers, reports
@@ -20,6 +21,13 @@ diki/
     ├── sources/            ← One summary per ingested source
     └── topics/             ← Synthesis pages combining multiple sources
 ```
+
+## Source Lifecycle
+
+- **Only ingest what's already in `raw/`.** Filing a file into `raw/` is the user's curation act ("I reviewed this, it's source material") and the precondition for ingest.
+- **`Clippings/` is inbox, not source.** Unreviewed dumps live there, gitignored, never committed. Never ingest from `Clippings/` — if the user points at an inbox file, ask them to file it into `raw/` (with a clean slug filename) first.
+- **Personal notes** are curated by birth — they go straight to `raw/notes/`.
+- As a consequence, every `wiki/sources/*.md` traces back to a committed file in `raw/`.
 
 ## Page Format
 
@@ -113,6 +121,8 @@ Skip when:
 ## Workflows
 
 ### Ingest
+
+Only ingest sources already filed in `raw/` (see Source Lifecycle). If the user points at a `Clippings/` file, stop and ask them to file it into `raw/` first.
 
 When the user says to ingest a source (file drop, explicit command, or "process this"):
 

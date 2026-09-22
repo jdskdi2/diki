@@ -9,6 +9,9 @@ quartz/node_modules/
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 
+# Inbox (unreviewed clippings — never committed, see AGENTS.md)
+Clippings/
+
 # OS files
 .DS_Store
 Thumbs.db
