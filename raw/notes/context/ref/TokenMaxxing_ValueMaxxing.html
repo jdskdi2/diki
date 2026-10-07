@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TokenMaxxing → ValueMaxxing — 기본으로 돌아가기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --bg2:#F8FAFC; --card:#FFFFFF; --line:#E2E8F0;
+  --text:#0F172A; --muted:#64748B; --dim:#94A3B8;
+  --accent:#2563EB; --orange:#EA580C; --green:#15803D;
+  --shadow:0 1px 2px rgba(15,23,42,.04);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans KR",sans-serif;overflow:hidden;letter-spacing:-.01em}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.mono{font-family:"JetBrains Mono",monospace}
+.topbar{position:fixed;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;z-index:20;background:rgba(255,255,255,.95);border-bottom:1px solid var(--line)}
+.topbar .left{font-size:13px;color:var(--text);display:flex;gap:8px;align-items:center;font-weight:500}
+.topbar .right{font-size:12px;color:var(--muted)}
+.progress{position:fixed;top:44px;left:0;height:4px;background:var(--accent);width:0;z-index:21;transition:width .3s}
+.deck{position:absolute;inset:44px 0 0 0;overflow:hidden}
+.slide{position:absolute;inset:0;display:none;overflow:auto;padding:22px 20px 16px 20px;background:var(--bg)}
+.slide.active{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.shell{max-width:1160px;margin:0 auto}
+.hero{text-align:center;padding-top:18px}
+.kicker{font-size:11px;letter-spacing:.14em;color:var(--accent);font-weight:700;margin-bottom:10px}
+.h1{font-size:44px;line-height:1.1;font-weight:900;color:var(--text)}
+.h1 em{font-style:normal;color:var(--accent)}
+.sub{margin-top:12px;color:var(--muted);font-size:14px;line-height:1.6;max-width:640px;margin-left:auto;margin-right:auto;word-break:keep-all}
+.toc{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px;text-align:left;max-width:900px;margin-left:auto;margin-right:auto}
+.toc .card{padding:16px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+.toc .card .num{font-size:11px;color:var(--accent);font-weight:700}
+.toc .card .ttl{font-weight:800;margin-top:4px;font-size:14px}
+.toc .card .msg{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;word-break:keep-all}
+.toc .card.activeToc{background:#EFF6FF;border-color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.cardBox{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px;box-shadow:var(--shadow)}
+.cardBox h4{margin:0 0 8px 0;font-size:12px;font-weight:800;color:var(--text);letter-spacing:-.01em}
+.cardBox p{margin:0;color:var(--muted);font-size:12px;line-height:1.6;word-break:keep-all}
+.h2{font-size:21px;line-height:1.3;font-weight:900;margin:0;color:var(--text);word-break:keep-all}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.quote{border-left:3px solid var(--accent);padding:9px 12px;background:#F8FAFC;border-radius:0 8px 8px 0;font-size:12px;line-height:1.6;color:#334155;word-break:keep-all}
+.quote em{color:var(--accent);font-style:normal;font-weight:700}
+.table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:8px;border:1px solid var(--line);font-size:12px}
+.table th{background:#F8FAFC;color:#475569;text-align:left;padding:7px 8px;font-weight:700;font-size:11px;border-bottom:1px solid var(--line)}
+.table td{padding:7px 8px;border-top:1px solid #F1F5F9;vertical-align:top;line-height:1.5;color:#334155;word-break:keep-all}
+.table tr:first-child td{border-top:none}
+.tag{font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid #E2E8F0;background:#F8FAFC;color:#475569}
+.bad{color:#DC2626;font-weight:700}
+.good{color:#15803D;font-weight:700}
+.mid{color:#A16207;font-weight:700}
+.flow{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0;flex-wrap:wrap}
+.flow .node{padding:9px 10px;border-radius:10px;background:var(--card);border:1px solid var(--line);text-align:center;min-width:110px}
+.flow .node b{display:block;font-size:12px}
+.flow .node span{font-size:10px;color:var(--muted)}
+.flow .arr{color:var(--dim);font-size:13px}
+.check{list-style:none;padding:0;margin:6px 0 0 0;display:flex;flex-direction:column;gap:7px}
+.check li{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:var(--card);border:1px solid var(--line);font-size:12px;line-height:1.5;color:#334155;word-break:keep-all}
+.check li input[type="checkbox"]{margin-top:2px;accent-color:var(--accent);width:14px;height:14px;flex-shrink:0}
+.sources{font-size:11px;color:var(--muted);line-height:1.6;margin-top:6px}
+.sources a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+.code{font-family:"JetBrains Mono",monospace;font-size:11px;background:#F8FAFC;border:1px solid #E2E8F0;padding:2px 5px;border-radius:5px;color:#334155}
+.footer{margin-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+.controls{position:fixed;bottom:14px;right:14px;display:flex;gap:8px;z-index:20}
+.btn{width:36px;height:36px;border-radius:999px;display:grid;place-items:center;background:var(--card);border:1px solid var(--line);color:var(--text);cursor:pointer;box-shadow:var(--shadow)}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.hint{position:fixed;bottom:14px;left:14px;font-size:11px;color:var(--muted);background:white;padding:6px 10px;border-radius:999px;border:1px solid var(--line)}
+.icon{width:18px;height:18px;flex-shrink:0;display:inline-grid;place-items:center;border-radius:6px}
+.icon svg{width:13px;height:13px}
+.kpi{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 8px;border-radius:999px;background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;font-weight:700}
+.cacheGrid{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:8px}
+.cacheCard{padding:9px;border-radius:8px;text-align:center;border:1px solid var(--line)}
+.cacheCard.hit{background:#F0FDF4;border-color:#BBF7D0}
+.cacheCard.miss{background:#FFF7ED;border-color:#FDBA74}
+.qrBox{width:74px;height:74px;border:1px dashed var(--line);border-radius:8px;display:grid;place-items:center;background:#F8FAFC;color:var(--muted);font-size:10px;text-align:center;line-height:1.3;flex-shrink:0}
+.mini{font-size:11px;color:var(--muted);line-height:1.5}
+@media (max-width:1100px){
+  .shell{max-width:98vw}
+  .grid3{grid-template-columns:1fr 1fr}
+}
+@media (max-width:860px){
+  html,body{overflow:auto}
+  .deck{position:relative;inset:auto}
+  .slide{position:relative;display:block;padding:18px 14px;border-bottom:1px solid var(--line)}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .toc{grid-template-columns:1fr}
+  .h1{font-size:30px}
+  .controls,.hint{display:none}
+}
+@media print{
+  .topbar,.progress,.controls,.hint{display:none}
+  .deck{position:relative;inset:auto}
+  .slide{position:relative;display:block !important;page-break-inside:avoid;page-break-after:always;border:none;padding:14px 0}
+  .slide:last-child{page-break-after:auto}
+  body{overflow:auto}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="left"><span>TokenMaxxing → ValueMaxxing</span><span style="opacity:.5">기본으로 돌아가기</span></div>
+  <div class="right"><span id="slideNo">1 / 4</span></div>
+</div>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- COVER 1/4 -->
+<section class="slide active" data-title="Cover">
+  <div class="shell hero">
+    <div class="kicker">TECH TALK · 2026</div>
+    <div class="h1">TokenMaxxing은 끝났다.<br><em>ValueMaxxing은 기본이다.</em></div>
+    <div class="sub">토큰을 많이 쓰는 게 실력이 아닙니다. 가벼운 일은 가볍게, 제대로 물어보고, 도구를 잘 쓰는 게 답입니다.</div>
+    <div class="toc">
+      <div class="card"><div class="num">01</div><div class="ttl">진단 — 왜 실패하는가</div><div class="msg">Goodhart·리더보드·코드는 늘고 버려진 코드는 4배</div></div>
+      <div class="card"><div class="num">02</div><div class="ttl">해법 — 3원칙으로 줄이기</div><div class="msg">가볍게 쓰기 · 제대로 묻기 · 도구에 맡기기</div></div>
+      <div class="card activeToc"><div class="num">03</div><div class="ttl">실행 — 2주면 달라진다</div><div class="msg">오늘 하나 고르고 내일 ccusage로 확인</div></div>
+    </div>
+    <div style="margin-top:20px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap">
+      <span class="kpi">Space 시작 →</span><span class="tag">← → 이동 · F 전체화면 · P 인쇄 · 숫자 1–4</span>
+    </div>
+    <div class="footer" style="margin-top:22px"><span>Fortune 2026.05 · Faros.ai 2026.04 · DORA 2025 · Anthropic</span><span>총 4장 · 밀도 높게 한 번에 →</span></div>
+  </div>
+</section>
+
+<!-- SLIDE 2/4 · 진단 -->
+<section class="slide" data-title="진단">
+  <div class="shell">
+    <div class="h2">01 진단 — 많이 만들수록 손해였다</div>
+    <div class="hr"></div>
+
+    <div class="grid2">
+      <!-- 좌: 정의 + Goodhart -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="quote">토큰을 많이 쓸수록 잘한다고 믿고 어떻게든 더 쓰려던 현상.<br><em>"The more tokens expended, the more productive"</em> — Fortune, 2026.05</div>
+        <div class="grid2" style="gap:10px">
+          <div class="cardBox" style="display:flex;gap:10px;align-items:flex-start;padding:11px">
+            <span class="icon" style="background:#EFF6FF;border:1px solid #BFDBFE;color:var(--accent)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+            <div><b style="font-size:12px">토큰 = 비용</b><p>영어 1.5단어≈1토큰. 수백 번 API 호출마다 과금. <span class="code">토큰은 비용이지 성과가 아닙니다.</span></p></div>
+          </div>
+          <div class="cardBox" style="display:flex;gap:10px;align-items:flex-start;padding:11px">
+            <span class="icon" style="background:#F8FAFC;border:1px solid var(--line);color:var(--muted)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 3"/></svg></span>
+            <div><b style="font-size:12px">코드 줄 수의 반복</b><p>10년 전 줄 수 평가를 토큰 수로 반복. 측정이 목표가 되면 망가집니다.</p></div>
+          </div>
+        </div>
+        <div class="cardBox" style="padding:10px">
+          <h4>Goodhart의 법칙 — 측정하던 게 목표가 되면 지표는 망가진다</h4>
+          <svg viewBox="0 0 520 92" width="100%" height="92" style="background:#F8FAFC;border:1px solid var(--line);border-radius:8px;margin-top:6px" role="img" aria-labelledby="gTitle gDesc">
+            <title id="gTitle">토큰 수 측정 → 목표가 됨 → 남용 → 지표 붕괴</title><desc id="gDesc">토큰 하나하나는 실제 돈이다</desc>
+            <text x="12" y="26" fill="#475569" font-size="11" font-weight="700">토큰 수 측정</text>
+            <line x1="86" y1="22" x2="118" y2="22" stroke="#2563EB" stroke-width="1.5" marker-end="url(#a)"/>
+            <rect x="124" y="10" width="68" height="24" rx="7" fill="#EFF6FF" stroke="#BFDBFE"/><text x="133" y="26" fill="#1E40AF" font-size="10" font-weight="700">목표가 됨</text>
+            <line x1="192" y1="22" x2="224" y2="22" stroke="#EA580C" stroke-width="1.5" marker-end="url(#a)"/>
+            <text x="232" y="26" fill="#EA580C" font-size="10" font-weight="700">남용</text>
+            <line x1="260" y1="22" x2="292" y2="22" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#a)"/>
+            <rect x="298" y="8" width="210" height="52" rx="8" fill="#FFFFFF" stroke="#E2E8F0"/>
+            <text x="403" y="26" text-anchor="middle" fill="#DC2626" font-size="11" font-weight="800">그 지표는 더 이상 믿을 수 없다</text>
+            <text x="403" y="42" text-anchor="middle" fill="#0F172A" font-size="11" font-weight="800">토큰 하나하나는 실제 돈입니다</text>
+            <text x="403" y="54" text-anchor="middle" fill="#64748B" font-size="10">1K 토큰 $0.003–0.015 · 쌓이면 월 수백만 원</text>
+            <defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94A3B8"/></marker></defs>
+          </svg>
+          <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;background:#F8FAFC;border:1px solid var(--line);border-radius:8px;padding:8px 10px">
+            <span style="font-size:12px"><b>TokenMaxxing</b> <span style="color:var(--muted)">많이 쓰는 게 잘함</span></span><span aria-hidden="true" style="color:var(--dim)">→</span><span style="font-size:12px;text-align:right"><b style="color:var(--accent)">ValueMaxxing</b> <span style="color:var(--muted)">적게 쓰고 남는 게 잘함</span></span>
+          </div>
+        </div>
+      </div>
+      <!-- 우: 리더보드 사례 -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="cardBox" style="padding:0;overflow:hidden">
+          <div style="padding:8px 10px;background:#F8FAFC;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px">실제로 있었던 일 · 2026.04</b><span class="tag">공개 사례</span></div>
+          <table class="table" style="border:0;border-radius:0">
+            <tr><th style="width:72px">언제</th><th>무슨 일</th><th style="width:92px">결과</th></tr>
+            <tr><td><span class="mono">Meta</span></td><td><b>Claudeonomics</b> — 8.5만 명 토큰 순위. 30일간 60조 토큰≈9천억 원</td><td><span class="bad">이틀 만에 삭제</span></td></tr>
+            <tr><td><span class="mono">Amazon</span></td><td><b>KiroRank</b> — 80% 주간 AI 사용 목표. 쓸데없는 작업 양산</td><td><span class="bad">한 달 폐쇄</span><div style="font-size:10px;color:var(--muted)">"그냥 쓰려고 쓰지 마세요" — SVP</div></td></tr>
+          </table>
+          <div style="padding:8px 10px;background:#FFFFFF;border-top:1px solid var(--line);font-size:11px;color:#334155"><b>토큰 리더보드란?</b> <span class="mono">ccusage</span>처럼 내 PC 기록을 모아 비용 순위를 보여주는 표. — <b>비용 뷰어를 성과표로 착각</b>한 게 문제. <a href="https://github.com/ryoppippi/ccusage" target="_blank" rel="noopener">ccusage ↗</a></div>
+        </div>
+        <div class="cardBox" style="padding:10px">
+          <h4>어떻게 돈이 샜을까</h4>
+          <div class="flow" style="margin:8px 0"><div class="node"><b>순위표 생김</b><span>토큰 집계</span></div><div class="arr" aria-hidden="true">→</div><div class="node"><b>쓸데없는 작업 ↑</b><span>날씨 조회 등</span></div><div class="arr" aria-hidden="true">→</div><div class="node" style="background:#FFF7ED;border-color:#FDBA74"><b>청구서만 ↑</b></div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;margin-top:6px">
+            <div style="padding:8px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line)"><b>TokScale 커뮤니티 281조</b><br><span style="color:var(--muted)">약 2천 명 · 비공식 집계</span></div>
+            <div style="padding:8px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line)"><b>도구 tokenmaxxing.sh</b><br><span style="color:var(--muted)">ccusage / OpenCode 집계</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 하단: 결과 2카드 -->
+    <div class="grid2" style="margin-top:10px">
+      <div class="cardBox" style="padding:11px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><h4>코드는 폭발했는데, 버려진 코드가 더 늘었다</h4><span class="tag">22,000명 · 2년 · Faros</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+          <div style="text-align:center;padding:10px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line)"><div style="font-size:10px;color:var(--muted)">AI로 만든 코드</div><div style="font-size:28px;font-weight:900;color:var(--accent)">+210%</div></div>
+          <div style="text-align:center;padding:10px;border-radius:8px;background:#FFF7ED;border:1px solid #FDBA74"><div style="font-size:10px;color:var(--muted)">버려진 코드</div><div style="font-size:28px;font-weight:900;color:var(--orange)">+861%</div></div>
+        </div>
+        <p style="margin-top:8px">많이 만든 것보다 <b>남은 게 중요</b>. 버그도 54% ↑ · <span style="font-size:11px;color:var(--muted)">리더보드 경쟁에만 몰두하면 토큰만 나가고 남는 게 없다</span></p>
+      </div>
+      <div class="cardBox" style="padding:11px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><h4>잘하는 팀은 더 잘하고, 아닌 팀은 더 나빠졌다</h4><span class="tag">DORA 5,000명</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+          <div style="padding:10px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);text-align:center"><div style="font-size:10px;color:var(--muted)">AI 쓰는 팀</div><div style="font-size:20px;font-weight:900">90%</div><div style="font-size:10px;color:var(--muted)">80% 편하다고 답함</div></div>
+          <div style="padding:10px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);text-align:center"><div style="font-size:10px;color:var(--muted)">결과는?</div><div style="font-size:13px;font-weight:800"><span class="good">속도 +</span> <span style="color:var(--dim)">/</span> <span class="bad">안정성 -</span></div><div style="font-size:10px;color:var(--muted)">기본 없으면 증폭도 마이너스</div></div>
+        </div>
+        <div class="quote" style="margin-top:8px;padding:8px 10px">“AI는 증폭기입니다. 기본이 탄탄한 팀은 더 좋아지고, 아닌 팀은 더 나빠집니다.” — DORA</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;text-align:center;padding:9px;background:#F8FAFC;border:1px solid var(--line);border-radius:8px;font-size:12px">결국 <b>기본(작게 나누기·검증하기)</b>이 있어야 AI도 도움. <span style="color:var(--muted)">다음 장에서 3가지로 바로 줄입니다 →</span></div>
+    <div class="footer"><span>Fortune 2026.05 · Faros.ai 2026.04 · DORA 2025 · beri.net · UsageBox</span><span>01 진단 → 02 해법</span></div>
+  </div>
+</section>
+
+<!-- SLIDE 3/4 · 해법 -->
+<section class="slide" data-title="해법">
+  <div class="shell">
+    <div class="h2">02 해법 — ValueMaxxing 3원칙 <span style="font-weight:500;color:var(--muted);font-size:13px">많이 쓰는 게 아니라, 남는 만큼만</span></div>
+    <div class="hr"></div>
+
+    <!-- 상단 요약 바 -->
+    <div class="cardBox" style="padding:10px;display:grid;grid-template-columns:1.1fr 1fr;gap:12px;align-items:center;background:#EFF6FF;border-color:#BFDBFE">
+      <div>
+        <div style="font-size:11px;letter-spacing:.08em;color:var(--accent);font-weight:700">MINDSET</div>
+        <div style="font-size:13px;font-weight:800;margin-top:4px">"진짜 성과는 토큰 수가 아니라, AI가 없었다면 몇 시간이 걸렸을까" — Boris Cherny</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><span class="kpi">측정: 주간 비용 ↓ / PR당 토큰 ↓</span><span class="tag" style="background:white">전 10만토큰 PR 5시간 → 후 1만토큰 PR 30분</span></div>
+      </div>
+      <div>
+        <div class="flow" style="margin:4px 0"><div class="node" style="background:white"><b>01 가볍게</b><span>Model/Effort</span></div><div class="arr">→</div><div class="node" style="background:white"><b>02 제대로</b><span>Prompt</span></div><div class="arr">→</div><div class="node" style="background:white"><b>03 도구에</b><span>Skill/MCP</span></div></div>
+        <p style="font-size:11px;text-align:center">앞의 두 가지만 지켜도 <b>60–90% 절감</b>. 나머지는 일을 어떻게 나누느냐.</p>
+      </div>
+    </div>
+
+    <div class="grid3" style="margin-top:10px">
+      <!-- 01 가볍게 쓰기 -->
+      <div class="cardBox" style="border-left:3px solid var(--accent);padding:11px;display:flex;flex-direction:column;gap:9px">
+        <div><div style="font-size:10px;color:var(--accent);font-weight:800">01</div><div style="font-weight:800;font-size:13px">가볍게 쓰기</div><div style="font-size:11px;color:var(--muted)">커피 사러 갈 때 트럭 몰 필요 없죠</div></div>
+        <div style="background:#F8FAFC;border:1px solid var(--line);border-radius:8px;padding:8px">
+          <div style="font-size:11px;font-weight:800">같은 일 비용 차이 — 이슈 요약·라벨</div>
+          <table class="table" style="margin-top:6px">
+            <tr><th>모델</th><th>비용</th><th>결과</th><th>배수</th></tr>
+            <tr><td><b>Haiku</b></td><td class="mono">$0.25/1M</td><td>충분</td><td class="good">1배</td></tr>
+            <tr><td><b>Sonnet</b></td><td class="mono">$3/1M</td><td>충분</td><td class="mid">12배</td></tr>
+            <tr><td><b>Opus</b></td><td class="mono">$15/1M</td><td>비슷</td><td class="bad">60배</td></tr>
+          </table>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">쉬운 일은 가벼운 모델이 10배+ 저렴 · Anthropic Pricing 2026 Input 기준</div>
+        </div>
+        <div style="background:white;border:1px solid var(--line);border-radius:8px;padding:8px">
+          <div style="font-size:11px;font-weight:800">왜 중간에 바꾸면 비쌀까 — 캐시 미스</div>
+          <div class="cacheGrid"><div class="cacheCard hit"><div style="font-size:10px;color:var(--muted)">히트</div><div style="font-weight:800;color:var(--green);font-size:13px">$0.002</div><div style="font-size:10px;color:var(--muted)">이어서</div></div><div style="color:var(--dim)">→</div><div class="cacheCard miss"><div style="font-size:10px;color:var(--muted)">미스</div><div style="font-weight:800;color:var(--orange);font-size:13px">$0.024</div><div style="font-size:10px;color:var(--orange)">12배 ↑</div></div></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">같은 대화에서 모델 바꾸면 캐시 무효화 · 긴 대화도 선형 증가 → <span class="code">/clear</span></div>
+        </div>
+        <div style="padding:8px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line)">
+          <div style="font-size:11px;font-weight:800">1분 시연 · <span class="mono">npx ccusage</span> <a href="https://github.com/ryoppippi/ccusage" target="_blank" rel="noopener" style="font-size:10px">↗</a></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">같은 질문 3모델에 → 비용·속도 즉시 비교 (결과 비슷, 비용 60배 차이)</div>
+          <div style="margin-top:6px;padding:6px;border-radius:6px;background:#EFF6FF;border:1px solid #BFDBFE;font-size:11px"><b>2회 룰:</b> 가벼운 모델 2회 실패/정확도 80% 미만이면 그때 상위 모델</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:11px">
+          <div><span style="color:var(--green)">✓</span> 쉬운 일은 가벼운 모델로</div><div><span style="color:var(--green)">✓</span> 중간에 바꾸지 않기</div><div><span style="color:var(--green)">✓</span> 바꿀 땐 <span class="code">/clear</span> 새로 시작</div>
+        </div>
+      </div>
+
+      <!-- 02 제대로 묻기 -->
+      <div class="cardBox" style="border-left:3px solid #0EA5E9;padding:11px;display:flex;flex-direction:column;gap:9px">
+        <div><div style="font-size:10px;color:#0EA5E9;font-weight:800">02</div><div style="font-weight:800;font-size:13px">제대로 묻기</div><div style="font-size:11px;color:var(--muted)">잘 물어야 답도 싸게 옵니다</div></div>
+        <div style="background:#F8FAFC;border:1px solid var(--line);border-radius:8px;padding:8px">
+          <div style="font-size:11px;font-weight:800">프롬프트는 어디서나 쓰인다</div><p style="font-size:11px;margin-top:4px">채팅·배경지식·도구 전달 전부 프롬프트. 여기를 잘 쓰면 어디서나 절감.</p>
+          <div style="margin-top:6px;padding:6px;border-radius:6px;background:white;border:1px solid var(--line);display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:4px;align-items:center;text-align:center;font-size:11px"><div><b>질문</b></div><div class="arr">→</div><div><b>배경</b></div><div class="arr">→</div><div><b>도구</b></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);text-align:center"><div aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/></svg></div><div style="font-weight:800;font-size:11px;margin-top:4px">역할 1줄</div><div style="font-size:10px;color:var(--muted)">You are… 모호하면 헤맴</div></div>
+          <div style="padding:7px;border-radius:8px;background:white;border:1px solid #BFDBFE;text-align:center"><div aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg></div><div style="font-weight:800;font-size:11px;margin-top:4px">예시 1개</div><div style="font-size:10px;color:var(--muted)">긴 설명보다 저렴</div></div>
+          <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);text-align:center"><div aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h10M7 13h6"/></svg></div><div style="font-weight:800;font-size:11px;margin-top:4px">제약 먼저</div><div style="font-size:10px;color:var(--muted)">형식·금지 앞에</div></div>
+        </div>
+        <div style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+          <div style="padding:6px 8px;background:#F8FAFC;border-bottom:1px solid var(--line);font-size:11px;font-weight:800">같은 질문, 프롬프트만 바꿨다</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+            <div style="padding:8px;background:#FFF7ED;border-right:1px solid var(--line)"><div style="font-size:10px;color:var(--orange);font-weight:800">이렇게 물으면</div><div style="font-size:11px;color:var(--muted);margin-top:4px">이슈 요약하고 라벨도 달아줘. 자세하게…</div><div style="margin-top:6px;font-size:11px"><span class="bad">1,200+800</span> <span style="color:var(--muted)">$0.018</span></div></div>
+            <div style="padding:8px;background:#F0FDF4"><div style="font-size:10px;color:var(--green);font-weight:800">이렇게 물으면</div><div style="font-size:11px;margin-top:4px">역할: 라벨러. 예시:{입력→출력} 제약:JSON 2줄</div><div style="margin-top:6px;font-size:11px"><span class="good">180+120</span> <span style="color:var(--green)">$0.002 · 9배 저렴</span></div></div>
+          </div>
+          <div style="padding:5px 8px;font-size:10px;color:var(--muted);background:white">Anthropic 가이드 동일 질문 비용 차이 · <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering" target="_blank" rel="noopener">prompt-engineering ↗</a></div>
+        </div>
+        <div style="font-size:11px;background:#F8FAFC;border:1px solid var(--line);border-radius:6px;padding:7px"><b>원칙:</b> 역할 1줄 · 예시 1개 · 제약 먼저. <span style="color:var(--muted)">채팅, 컨텍스트, MCP 어디서나 동일</span></div>
+      </div>
+
+      <!-- 03 도구에 맡기기 -->
+      <div class="cardBox" style="border-left:3px solid var(--green);padding:11px;display:flex;flex-direction:column;gap:9px">
+        <div><div style="font-size:10px;color:var(--green);font-weight:800">03</div><div style="font-weight:800;font-size:13px">도구에 맡기기</div><div style="font-size:11px;color:var(--muted)">손으로 다 하지 말고 도구를 쓰세요</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);text-align:center"><div aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 7V5a5 5 0 0110 0v2"/></svg></div><b style="font-size:11px">Skill</b><div style="font-size:10px;color:var(--muted);margin-top:2px">검증 규칙 빼두기<br><span style="color:var(--green);font-weight:700">최대 80%*</span></div></div>
+          <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);text-align:center"><div aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div><b style="font-size:11px">Subagent</b><div style="font-size:10px;color:var(--muted);margin-top:2px">반복 작업 맡기기</div></div>
+          <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);text-align:center"><div aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg></div><b style="font-size:11px">MCP</b><div style="font-size:10px;color:var(--muted);margin-top:2px">외부 정보 한 번에</div></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted)">*Claude Code 검증 Skill 시 매번 규칙 붙이던 토큰 대비 — 팀마다 상이</div>
+        <div style="padding:8px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);font-size:11px"><b>정리:</b> 두 가지만 지켜도 60–90% 절감. 측정 <span class="code">PR당 토큰</span> <span class="code">주간 비용</span> 택1 — Boris "time saved without AI"</div>
+        <div style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+          <div style="padding:6px 8px;background:#F8FAFC;border-bottom:1px solid var(--line);font-size:11px;font-weight:800">2주 이렇게 해보세요</div>
+          <table class="table" style="border:0;border-radius:0">
+            <tr><th>주차</th><th>할 일</th><th>확인</th></tr>
+            <tr><td><b>1주차</b></td><td>작게 나누고 쉬운 일은 가벼운 모델</td><td><span class="good">비용 ↓</span></td></tr>
+            <tr><td><b>2주차</b></td><td>3원칙 + 작업 바꿀 때 <span class="code">/clear</span></td><td><span class="good">80% 유지</span></td></tr>
+            <tr><td><b>보너스</b></td><td>Skill/MCP 1개 써보기</td><td>시도</td></tr>
+          </table>
+        </div>
+        <div style="text-align:center;padding:8px;background:#F8FAFC;border:1px solid var(--line);border-radius:8px"><div style="font-size:12px;font-weight:900">ValueMaxxing은 거창한 게 아닙니다</div><div style="font-size:11px;color:var(--accent);font-weight:800">기본 세 가지 지키기 — 그게 다입니다</div></div>
+      </div>
+    </div>
+    <div class="footer"><span>Boris Cherny · Anthropic · Cadence · <a href="https://www.anthropic.com/pricing" target="_blank" rel="noopener">Pricing</a> · prompt-engineering</span><span>02 해법 → 03 실행</span></div>
+  </div>
+</section>
+
+<!-- SLIDE 4/4 · 실행 -->
+<section class="slide" data-title="실행">
+  <div class="shell">
+    <div class="h2">03 실행 — 오늘 하나만, 2주면 달라집니다</div>
+    <div class="hr"></div>
+
+    <div class="grid2">
+      <!-- 좌: CTA + 실행 -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="cardBox" style="border-color:var(--accent);background:#EFF6FF;padding:11px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px">3가지 중 하나 고르기 — 30초</b><span class="tag" style="background:white">TODAY</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">
+            <label style="padding:8px;border-radius:8px;background:white;border:1px solid #BFDBFE;text-align:center;cursor:pointer"><input type="radio" name="pick" style="accent-color:var(--accent)"><div style="font-weight:800;font-size:11px;margin-top:4px">가볍게 쓰기</div><div style="font-size:10px;color:var(--muted)">Haiku 먼저</div></label>
+            <label style="padding:8px;border-radius:8px;background:white;border:1px solid #BFDBFE;text-align:center;cursor:pointer"><input type="radio" name="pick" style="accent-color:var(--accent)"><div style="font-weight:800;font-size:11px;margin-top:4px">제대로 묻기</div><div style="font-size:10px;color:var(--muted)">예시 1개</div></label>
+            <label style="padding:8px;border-radius:8px;background:white;border:1px solid #BFDBFE;text-align:center;cursor:pointer"><input type="radio" name="pick" style="accent-color:var(--accent)"><div style="font-weight:800;font-size:11px;margin-top:4px">도구에 맡기기</div><div style="font-size:10px;color:var(--muted)">Skill 1개</div></label>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><span class="kpi">오늘 $X → 내일 $Y</span><span class="kpi" style="background:#F0FDF4;border-color:#BBF7D0;color:#15803D">AI 없이면 몇 시간?</span></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">예: 어제 10만토큰 PR 1개 → 오늘 1만토큰 PR 3개로 나누면 성공</div>
+        </div>
+
+        <div class="cardBox" style="padding:11px">
+          <h4>내일 아침 9시, 이렇게 확인</h4>
+          <div style="display:grid;gap:7px;margin-top:6px">
+            <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);display:flex;gap:8px;align-items:center;font-size:11px"><span class="mono" style="background:white;border:1px solid var(--line);padding:2px 5px;border-radius:5px">npx ccusage</span> 어제 vs 오늘 비용 비교</div>
+            <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);font-size:11px"><b>작게 나누기</b> — <span class="mono">1 PR = 1 작업</span> 지켰나요?</div>
+            <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line);font-size:11px"><b>가볍게 쓰기</b> — 쉬운 일에 Haiku 썼나요?</div>
+            <div style="padding:7px;border-radius:8px;background:#FFF7ED;border:1px solid #FDBA74;font-size:11px">모델 바꿨다면 <span class="code">/clear</span>로 새로 시작 — 캐시 12배 절약</div>
+          </div>
+        </div>
+
+        <div class="cardBox" style="display:flex;gap:10px;align-items:center;padding:11px">
+          <div class="qrBox">QR<br>ccusage<br>docs</div>
+          <div style="font-size:11px;line-height:1.5;color:var(--muted)"><b style="color:var(--text)">링크</b> · <a href="https://github.com/ryoppippi/ccusage" target="_blank" rel="noopener">ccusage GitHub</a> · <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering" target="_blank" rel="noopener">Prompt Guide</a><br><span style="font-size:10px">QR은 발표 후 공유용 — 인쇄 시 커스텀 QR 교체</span><div style="margin-top:6px"><a href="#" onclick="window.print();return false" class="tag" style="text-decoration:none">🖨️ 인쇄 / PDF (P)</a> <span class="tag">F 전체화면</span></div></div>
+        </div>
+      </div>
+
+      <!-- 우: 체크리스트 + FAQ -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="cardBox" style="padding:11px">
+          <h4>2주 체크리스트 — 이 다섯 가지만</h4>
+          <ul class="check">
+            <li><input type="checkbox"><span><b>작게 나누기</b> — 한 번에 한 가지, <span class="mono">1 PR = 1 작업</span></span></li>
+            <li><input type="checkbox"><span><b>가볍게 쓰기</b> — 쉬운 일은 가벼운 모델 (2회 실패 시에만 상위)</span></li>
+            <li><input type="checkbox"><span><b>제대로 묻기</b> — 역할·예시·제약 3가지만</span></li>
+            <li><input type="checkbox"><span><b>새로 시작하기</b> — 작업 바꾸면 <span class="code">/clear</span> (긴 대화는 누적 → 선형 증가)</span></li>
+            <li><input type="checkbox"><span><b>한 번 기록하기</b> — 매일 <span class="mono">ccusage</span>로 비용 한 번만</span></li>
+          </ul>
+          <div style="margin-top:8px;padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line)">
+            <table class="table" style="border:0">
+              <tr><th>명령어</th><th>언제</th><th>팁</th></tr>
+              <tr><td class="mono">/init</td><td>배경지식 처음</td><td>한 번만</td></tr>
+              <tr><td class="mono">/clear</td><td>다른 일 시작</td><td>캐시 90% 절약</td></tr>
+              <tr><td class="mono">/context</td><td>사용량 확인</td><td>50% 넘으면 정리</td></tr>
+            </table>
+          </div>
+          <div style="margin-top:6px;font-size:11px;background:#F8FAFC;border:1px solid var(--line);border-radius:6px;padding:6px"><b>ccusage</b>는 비용 뷰어이지 성과표가 아닙니다 — <a href="https://github.com/ryoppippi/ccusage" target="_blank" rel="noopener">github.com/ryoppippi/ccusage ↗</a></div>
+        </div>
+
+        <div class="cardBox" style="padding:11px">
+          <h4>자주 받는 질문</h4>
+          <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px">
+            <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line)"><b style="font-size:11px">성과는 어떻게 재나요?</b><div style="font-size:11px;color:var(--muted);margin-top:2px">"AI 없이 몇 시간?"(Boris) · 당장은 <span class="code">주간 비용 ↓</span> 또는 <span class="code">PR당 토큰 ↓</span> 하나만.</div></div>
+            <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line)"><b style="font-size:11px">무조건 가벼운 모델이 답?</b><div style="font-size:11px;color:var(--muted);margin-top:2px">아니요. 쉬운 일만. 어렵거나 중요하면 좋은 모델로. 2회 룰 적용.</div></div>
+            <div style="padding:7px;border-radius:8px;background:#F8FAFC;border:1px solid var(--line)"><b style="font-size:11px">중간에 모델 바꿔도 되나요?</b><div style="font-size:11px;color:var(--muted);margin-top:2px">가능하지만 캐시 무효화로 최대 12배 ↑. 바꿀 땐 <span class="code">/clear</span> 후 새로.</div></div>
+          </div>
+          <div class="sources" style="margin-top:8px">
+            <a href="https://fortune.com" target="_blank" rel="noopener">Fortune 2026.05</a> · <a href="https://faros.ai" target="_blank" rel="noopener">Faros 2026.04</a> · beri.net · DORA 2025<br>
+            <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering" target="_blank" rel="noopener">Anthropic Effective context</a> · <a href="https://www.anthropic.com/news/context-engineering" target="_blank" rel="noopener">New rules</a> · <a href="https://www.anthropic.com/pricing" target="_blank" rel="noopener">Pricing</a> · Cadence · CC0
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer"><span>ValueMaxxing — 기본으로 돌아가기 · Space로 다시 보기</span><span>← → Space · 1–4 · F 전체화면 · P 인쇄</span></div>
+  </div>
+</section>
+
+</div>
+<div class="controls">
+  <button class="btn" id="prev" aria-label="이전">‹</button>
+  <button class="btn" id="next" aria-label="다음">›</button>
+</div>
+<div class="hint">← → · Space · 1–4</div>
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let idx=0;
+const no=document.getElementById('slideNo'), prog=document.getElementById('progress');
+function show(i){
+  idx=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach((s,k)=>s.classList.toggle('active',k===idx));
+  no.textContent=(idx+1)+' / '+slides.length;
+  prog.style.width=((idx+1)/slides.length*100)+'%';
+  history.replaceState(null,'','#s'+(idx+1));
+}
+document.getElementById('next').onclick=()=>show(idx+1);
+document.getElementById('prev').onclick=()=>show(idx-1);
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();show(idx+1)}
+  if(e.key==='ArrowLeft') show(idx-1);
+  if(e.key==='Home') show(0);
+  if(e.key==='End') show(slides.length-1);
+  if(e.key>='1'&&e.key<='4'){ const n=parseInt(e.key,10)-1; if(n < slides.length) show(n); }
+  if(e.key.toLowerCase()==='f'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen()}
+  if(e.key.toLowerCase()==='p') window.print();
+});
+let sx=0;
+addEventListener('touchstart',e=>sx=e.touches[0].clientX);
+addEventListener('touchend',e=>{ let dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>40) show(idx+(dx<0?1:-1))});
+document.getElementById('deck').addEventListener('click',e=>{ if(e.target.closest('button,a,input,label')) return; show(idx+1)});
+const h=location.hash; if(h.startsWith('#s')){ let n=parseInt(h.slice(2))-1; if(!isNaN(n)) idx=n; }
+show(idx);
+</script>
+</body>
+</html>
